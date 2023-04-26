@@ -23,7 +23,7 @@ public class FacultyMenu : IMenu
                     MenuService?.GetMenus(
                         nameof(GradeMenu),
                         nameof(ActiveCoursesMenu),
-                        nameof(SalaryMenu),
+                        nameof(FacultyStatsMenu),
                         "BackMenu"
                     )!
                 )
@@ -212,19 +212,34 @@ public class ActiveCoursesMenu : IMenu
     }
 }
 
-public class SalaryMenu : IMenu
+public class FacultyStatsMenu : IMenu
 {
     /// <inheritdoc />
     public MenuService? MenuService { get; set; }
 
     /// <inheritdoc />
-    public string Name { get; init; } = "Salary Statistics";
+    public string Name { get; init; } = "Faculty Statistics";
 
     /// <inheritdoc />
     public void Show()
     {
         var totalSalaries = MenuService!.AdminService.GetFacultySalaries().ToList();
         var avgSalaries = MenuService.AdminService.GetFacultySalaries(average: true).ToList();
+
+        var faculties = MenuService?.AdminService.GetAllFacultiesWithTeachers().ToList();
+        var teacherBreakDown = new BreakdownChart().FullSize();
+
+        faculties?.ForEach(faculty =>
+        {
+            teacherBreakDown.AddItem(
+                faculty.Name,
+                faculty.Employees.Count,
+                Color.FromInt32(Random.Shared.Next(0, 256))
+            );
+        });
+
+        AnsiConsole.Write(new Rule("[cyan]Teachers / Faculty[/]"));
+        AnsiConsole.Write(teacherBreakDown);
 
         var totalChart = new BarChart().Label("Total Salary per Faculty").CenterLabel();
         totalSalaries.ForEach(

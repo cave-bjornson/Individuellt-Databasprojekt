@@ -33,9 +33,12 @@ public class AdminService
 
     public IEnumerable<Faculty> GetAllFacultiesWithTeachers()
     {
-        return _dbContext.Faculties.Include(
-            faculty => faculty.Employees.Where(employee => employee!.Position!.Title == "Teacher")
-        );
+        return _dbContext.Faculties
+            .Include(
+                faculty =>
+                    faculty.Employees.Where(employee => employee!.Position!.Title == "Teacher")
+            )
+            .ThenInclude(employee => employee!.Position);
     }
 
     public IEnumerable<Course> GetCourses(bool isActive = true)
