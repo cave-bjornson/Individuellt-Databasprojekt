@@ -1,19 +1,21 @@
 ﻿namespace ConsoleApplication.Models;
 
-public class Student : Person
+public class Student
 {
+    public int? StudentId { get; set; }
+
+    public required string PersonalIdentityNumber { get; set; }
+
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+
     public Class? Class { get; set; }
 
-    /// <inheritdoc />
-    public Student() { }
+    public ICollection<Course?> Courses { get; init; } = new List<Course?>();
 
-    public IEnumerable<Course?> Courses { get; set; } = new List<Course?>();
+    public ICollection<Grade?> Grades { get; set; } = new List<Grade?>();
 
-    public IEnumerable<Grade?> Grades { get; set; } = new List<Grade?>();
+    public ICollection<Employee?> Teachers { get; set; } = new List<Employee?>();
 
-    public IEnumerable<Employee?> Teachers { get; set; } = new List<Employee?>();
-
-    /// <inheritdoc />
-    public Student(int personId, string personalIdentityNumber, string firstName, string lastName)
-        : base(personId, personalIdentityNumber, firstName, lastName) { }
+    public ICollection<StudentTeacher?> StudentTeachers { get; set; } = new List<StudentTeacher?>();
 }

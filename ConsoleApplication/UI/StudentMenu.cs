@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using ConsoleApplication.Models;
+﻿using ConsoleApplication.Models;
 using Spectre.Console;
 using static ConsoleApplication.UI.UIHelpers;
 
@@ -17,24 +16,26 @@ public class StudentMenu : IMenu
     public void Show()
     {
         AnsiConsole.Write(new Rule($"[yellow]{this.Name}[/]"));
+#pragma warning disable CS8714
         var menuSelection = AnsiConsole.Prompt(
             new SelectionPrompt<IMenu>()
-                .Title(Name)
+                .Title(Name)!
                 .AddChoices(
                     MenuService?.GetMenus(
-                        //"StudentTableMenu",
+                        "StudentTableMenu",
                         "SingleStudentInfoMenu",
-                        //"AddStudentMenu",
+                        "AddStudentMenu",
                         "BackMenu"
                     )!
                 )
                 .UseConverter(menu => menu is null ? "Back" : menu.Name)
+#pragma warning restore CS8714
         );
         if (menuSelection is null)
         {
             return;
         }
-        // MenuService.Navigate(this, menuSelection);
+        MenuService?.Navigate(this, menuSelection);
     }
 
     public class StudentTableMenu : IMenu
@@ -50,72 +51,73 @@ public class StudentMenu : IMenu
         {
             var students = MenuService?.StudentService.GetAll().ToList();
 
-            // if (students is not null && students.Any())
-            // {
-            //     var staffTable = new Table()
-            //         .Title("Students")
-            //         .AddColumns("Student ID", "SSN", "Name", "Class");
-            //     foreach (Student s in students)
-            //     {
-            //         staffTable.AddRow(
-            //             s.PersonId.ToString(),
-            //             s.PersonalIdentityNumber,
-            //             $"{s.FirstName} {s.LastName}",
-            //             s.Class?.ClassName ?? "None"
-            //         );
-            //     }
-            //     AnsiConsole.Write(staffTable);
-            // }
+            if (students is not null && students.Any())
+            {
+                var studentTable = new Table()
+                    .Title("Students")
+                    .AddColumns("Student ID", "SSN", "First Name", "Last Name", "Class");
+                foreach (Student? s in students)
+                {
+                    studentTable.AddRow(
+                        s!.StudentId?.ToString() ?? "Not set",
+                        s.PersonalIdentityNumber,
+                        s.FirstName,
+                        s.LastName,
+                        s.Class?.ClassName ?? "None"
+                    );
+                }
+                AnsiConsole.Write(studentTable);
+            }
         }
     }
 
-    // public class AddStudentMenu : IMenu
-    // {
-    //     /// <inheritdoc />
-    //     public MenuService? MenuService { get; set; }
-    //
-    //     /// <inheritdoc />
-    //     public string Name { get; init; } = "Add Student";
-    //
-    //     /// <inheritdoc />
-    //     public void Show()
-    //     {
-    //         var (firstName, lastName, pin) = AskNamesAndPIN();
-    //         var selectedClass = AnsiConsole.Prompt(
-    //             new SelectionPrompt<Class>()
-    //                 .Title("Select a class to enroll Student in")
-    //                 .AddChoices(MenuService?.AdminService.GetAllClasses().ToList()!)
-    //                 .UseConverter(c => c.ClassName)
-    //         );
-    //
-    //         var grid = new Grid();
-    //         grid.AddColumns(2);
-    //         grid.AddRow("First name:", firstName);
-    //         grid.AddRow("Last name:", lastName);
-    //         grid.AddRow("PIN:", pin);
-    //         grid.AddRow("Class:", selectedClass.ClassName);
-    //         AnsiConsole.Write(grid);
-    //         if (AnsiConsole.Confirm("Save this student?") == false)
-    //         {
-    //             return;
-    //         }
-    //
-    //         var student = new Student()
-    //         {
-    //             FirstName = firstName,
-    //             LastName = lastName,
-    //             PersonalIdentityNumber = pin,
-    //             Class = selectedClass
-    //         };
-    //
-    //         //var newStudent = MenuService?.StudentService.Add(student);
-    //         // AnsiConsole.MarkupLine(
-    //         //     newStudent is not null
-    //         //         ? $"[green]Student {newStudent.FirstName} {newStudent.LastName} added[/]"
-    //         //         : "[red]Failed to add student[/]"
-    //         // );
-    //     }
-    // }
+    public class AddStudentMenu : IMenu
+    {
+        /// <inheritdoc />
+        public MenuService? MenuService { get; set; }
+
+        /// <inheritdoc />
+        public string Name { get; init; } = "Add Student";
+
+        /// <inheritdoc />
+        public void Show()
+        {
+            var (firstName, lastName, pin) = AskNamesAndPIN();
+            var selectedClass = AnsiConsole.Prompt(
+                new SelectionPrompt<Class>()
+                    .Title("Select a class to enroll Student in")
+                    .AddChoices(MenuService?.AdminService.GetAllClasses().ToList()!)
+                    .UseConverter(c => c.ClassName)
+            );
+
+            var grid = new Grid();
+            grid.AddColumns(2);
+            grid.AddRow("First name:", firstName);
+            grid.AddRow("Last name:", lastName);
+            grid.AddRow("PIN:", pin);
+            grid.AddRow("Class:", selectedClass.ClassName);
+            AnsiConsole.Write(grid);
+            if (AnsiConsole.Confirm("Save this student?") == false)
+            {
+                return;
+            }
+
+            var student = new Student()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                PersonalIdentityNumber = pin,
+                Class = selectedClass
+            };
+
+            var success = MenuService?.StudentService.AddStudent(student);
+            AnsiConsole.MarkupLine(
+                success is not null && (bool)success
+                    ? $"[green]Student {student.FirstName} {student.LastName} added[/]"
+                    : "[red]Failed to add student[/]"
+            );
+        }
+    }
 
     public class SingleStudentInfoMenu : IMenu
     {
@@ -128,8 +130,6 @@ public class StudentMenu : IMenu
         /// <inheritdoc />
         public void Show()
         {
-            AnsiConsole.Clear();
-
             // TODO Add validation.
             int? selectedStudentID = AnsiConsole.Prompt(
                 (
@@ -147,7 +147,7 @@ public class StudentMenu : IMenu
 
             int unNullStudentId = (int)selectedStudentID;
 
-            Student? student = MenuService.StudentService.GetStudentByID(unNullStudentId);
+            Student? student = MenuService?.StudentService.GetAllStudentInfo(unNullStudentId);
 
             if (student is null)
             {
@@ -157,7 +157,7 @@ public class StudentMenu : IMenu
 
             var studentGrid = new Grid()
                 .AddColumns(2)
-                .AddRow(new Markup("[blue]Student ID[/]"), new Text(student.PersonId.ToString()!))
+                .AddRow(new Markup("[blue]Student ID[/]"), new Text(student.StudentId.ToString()!))
                 .AddRow(
                     new Markup("[blue]Name:[/]"),
                     new Text($"{student.FirstName} {student.LastName}")
@@ -184,14 +184,15 @@ public class StudentMenu : IMenu
             }
 
             var courses = student.Courses.ToList();
-            var courseGrid = new Grid()
-                .AddColumns(2)
-                .AddRow(new Markup("[green]Course[/]"), new Markup("[green]Teacher[/]"));
+            var courseTable = new Table().AddColumns(
+                new TableColumn(new Markup("[green]Course[/]")),
+                new TableColumn(new Markup("[green]Teacher[/]"))
+            );
             if (courses.Any())
             {
                 foreach (Course? c in courses)
                 {
-                    courseGrid.AddRow(
+                    courseTable.AddRow(
                         $"{c?.Name}",
                         $"{c?.Teacher?.FirstName} {c?.Teacher?.LastName}"
                     );
@@ -199,26 +200,27 @@ public class StudentMenu : IMenu
             }
             else
             {
-                courseGrid.AddRow("No courses registered");
+                courseTable.AddRow("No courses registered", "No courses registered");
             }
 
             var grades = student.Grades.ToList();
 
-            var gradeGrid = new Grid()
-                .AddColumns(4)
-                .AddRow(
-                    new Markup("[red]Course[/]"),
-                    new Markup("[red]Grade[/]"),
-                    new Markup("[red]Date[/]"),
-                    new Markup("[red]Teacher[/]")
-                );
+            var gradeTable = new Table().AddColumns(
+                new TableColumn[]
+                {
+                    new TableColumn(new Markup("[red]Course[/]")),
+                    new TableColumn(new Markup("[red]Grade[/]")),
+                    new TableColumn(new Markup("[red]Date[/]")),
+                    new TableColumn(new Markup("[red]Teacher[/]"))
+                }
+            );
 
             if (courses.Any())
             {
-                foreach (Grade g in grades)
+                foreach (Grade? g in grades)
                 {
-                    gradeGrid.AddRow(
-                        g.Course.Name,
+                    gradeTable.AddRow(
+                        g!.Course.Name,
                         g.GradeValue.ToString(),
                         g.DateGraded.ToString(),
                         $"{g.Teacher.FirstName} {g.Teacher.LastName}"
@@ -227,29 +229,15 @@ public class StudentMenu : IMenu
             }
             else
             {
-                gradeGrid.AddRow("No grades registered");
+                gradeTable.AddRow("No grades registered");
             }
 
-            //Create the layout
-            var layout = new Layout("Root").SplitRows(
-                new Layout("Top").SplitRows(new Layout("Personal Info"), new Layout("Teachers")),
-                new Layout("Bottom").SplitRows(new Layout("Courses"), new Layout("Grades"))
-            );
-
-            // Update the top row
-            layout["Top"]["Personal Info"].Update(
-                new Panel(studentGrid).Expand().Header("Student")
-            );
-
-            layout["Top"]["Teachers"].Update(new Panel(teacherGrid).Expand().Header("Teachers"));
-
-            // Update the bottom row
-            layout["Bottom"]["Courses"].Update(new Panel(courseGrid).Expand().Header("Courses"));
-
-            layout["Bottom"]["Grades"].Update(new Panel(gradeGrid).Expand().Header("Grades"));
-
             // Render the layout
-            AnsiConsole.Write(layout);
+            AnsiConsole.Clear();
+            AnsiConsole.Write(new Panel(studentGrid).Expand().Header("Student"));
+            AnsiConsole.Write(new Panel(teacherGrid).Expand().Header("Teachers"));
+            AnsiConsole.Write(new Panel(courseTable).Expand().Header(("Courses")));
+            AnsiConsole.Write(new Panel(gradeTable).Expand().Header("Grades"));
 
             AnsiConsole.MarkupLine("[grey]Press any key to continue[/]");
             Console.ReadKey();

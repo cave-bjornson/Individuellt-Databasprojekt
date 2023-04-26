@@ -14,16 +14,25 @@ public class MainMenu : IMenu
     public void Show()
     {
         // AnsiConsole.Clear();
+#pragma warning disable CS8714
         var menuSelection = AnsiConsole.Prompt(
             new SelectionPrompt<IMenu>()
-                .Title(Name)
-                .AddChoices(MenuService?.GetMenus("SingleStudentInfoMenu", "BackMenu")!)
+                .Title(Name)!
+                .AddChoices(
+                    MenuService?.GetMenus(
+                        nameof(StudentMenu),
+                        nameof(StaffMenu),
+                        nameof(FacultyMenu),
+                        "BackMenu"
+                    )!
+                )
                 .UseConverter(menu => menu is null ? "Back" : menu.Name)
+#pragma warning restore CS8714
         );
         if (menuSelection is null)
         {
             return;
         }
-        MenuService.Navigate(this, menuSelection);
+        MenuService?.Navigate(this, menuSelection);
     }
 }

@@ -1,6 +1,4 @@
-﻿using ConsoleApplication.Models;
-using ConsoleApplication.Repositories;
-using ConsoleApplication.Services;
+﻿using ConsoleApplication.Services;
 
 namespace ConsoleApplication.UI;
 
@@ -8,23 +6,23 @@ public class MenuService
 {
     private readonly Dictionary<string, IMenu?> _menuDict = new();
 
-    private readonly Stack<IMenu> _menuStack = new();
+    private readonly Stack<IMenu?> _menuStack = new();
 
-    //public IPersonService<Employee> EmployeeService { get; }
+    public EmployeeService EmployeeService { get; }
 
     public StudentService StudentService { get; }
 
-    //public IAdminService AdminService { get; }
+    public AdminService AdminService { get; }
 
     public MenuService(
-        //IPersonService<Employee> employeeService,
-        StudentService studentService
-        //IAdminService adminService
+        EmployeeService employeeService,
+        StudentService studentService,
+        AdminService adminService
     )
     {
-        //EmployeeService = employeeService;
+        EmployeeService = employeeService;
         StudentService = studentService;
-        //AdminService = adminService;
+        AdminService = adminService;
 
         AppDomain.CurrentDomain
             .GetAssemblies()
@@ -44,7 +42,10 @@ public class MenuService
     /// <summary>
     /// Navigate to a menu if it is not null, otherwise navigate back
     /// </summary>
-    /// <param name="menu">
+    /// <param name="from">
+    /// The menu to navigate from
+    /// </param>
+    /// <param name="to">
     /// The menu to navigate to
     /// </param>
     public void Navigate(IMenu? from, IMenu? to)
@@ -63,7 +64,7 @@ public class MenuService
     /// <returns>
     /// The menu with the given name
     /// </returns>
-    public IMenu GetMenu(string menuName)
+    public IMenu? GetMenu(string menuName)
     {
         return _menuDict[menuName.ToLower()];
     }
@@ -77,7 +78,7 @@ public class MenuService
     /// <returns>
     /// A list of menus with the given names
     /// </returns>
-    public IEnumerable<IMenu>? GetMenus(params string[] menuNames)
+    public List<IMenu?> GetMenus(params string[] menuNames)
     {
         return menuNames.Select(GetMenu).ToList();
     }

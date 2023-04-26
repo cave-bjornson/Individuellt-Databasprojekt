@@ -1,7 +1,14 @@
 ﻿namespace ConsoleApplication.Models;
 
-public class Employee : Person
+public class Employee
 {
+    public int? EmployeeId { get; init; }
+
+    public required string PersonalIdentityNumber { get; set; }
+
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+
     public Position? Position { get; set; }
     public DateOnly HireDate { get; set; }
 
@@ -9,12 +16,36 @@ public class Employee : Person
 
     public Faculty? Faculty { get; set; }
 
-    public IEnumerable<Course?> Courses { get; set; } = new List<Course?>();
+    protected bool Equals(Employee other)
+    {
+        return EmployeeId == other.EmployeeId;
+    }
 
     /// <inheritdoc />
-    public Employee() { }
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj))
+            return false;
+        if (ReferenceEquals(this, obj))
+            return true;
+        if (obj.GetType() != this.GetType())
+            return false;
+        return Equals((Employee)obj);
+    }
 
     /// <inheritdoc />
-    public Employee(int personId, string personalIdentityNumber, string firstName, string lastName)
-        : base(personId, personalIdentityNumber, firstName, lastName) { }
+    public override int GetHashCode()
+    {
+        return EmployeeId.GetHashCode();
+    }
+
+    public static bool operator ==(Employee? left, Employee? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(Employee? left, Employee? right)
+    {
+        return !Equals(left, right);
+    }
 }
